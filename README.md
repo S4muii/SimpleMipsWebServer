@@ -15,3 +15,7 @@ To debug the server
 make && qemu-mips -g 1234 ./main
 gdb-multiarch --ex 'target remote :1234' --ex 'file ./main'
 ```
+or if you're using GEF you can 
+```shell
+gdb-multiarch --ex 'gef-remote --qemu-user --qemu-binary ./main 127.0.0.1 1234'
+```

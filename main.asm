@@ -96,12 +96,18 @@ __start:
 			syscall
 
 			add $a1,$s1,$s4
-			lb $t1,0($a1)
-			li $t3,' '
+			lb 	$t1,0($a1)
+			li 	$t3,' '
 
 			bne $t1, $t3, readLoop
 
 
+	move $a0,$s0
+	move $a1,$s1
+	li $a2, 20
+	
+	li $v0,SYS_write
+	syscall
 
 	li $a0,20
 	li $v0,SYS_exit
