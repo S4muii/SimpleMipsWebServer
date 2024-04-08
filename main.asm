@@ -7,9 +7,10 @@
 	goodResponse: 	 	.asciz "HTTP/1.1 200 OK\r\n\r\n"
     badResponse: 	 	.asciz "HTTP/1.1 404 File not found\r\n\r\n"
     delimiterString: 	.asciz "\r\n\r\n"
+	malformedReq:		.asciz "The Request is malformed"
     GET:  				.asciz "GET"
     POST: 				.asciz "POST"
-
+	
 	sockfd: 			.word 0x0
     currfd: 			.word 0x0
 
@@ -21,6 +22,7 @@
 
 	goodResponseLen: 	.word badResponse 		- goodResponse 	- 1 
     badResponseLen:	 	.word delimiterString 	- badResponse 	- 1
+	malformedReqLen:	.word GET 				- malformedReq 	- 1
 	addrLen:			.word goodResponseLen 	- addr
 
 
@@ -47,22 +49,17 @@ __start:
 		la $t5,sockfd
 		sw $v0,0($t5)
 
-
-
 	bind:
-		la $t5,sockfd
-		lw $a0,0($t5)
+		lw $a0,sockfd
 		la $a1,addr
-		la $t5,addrLen
-		lw $a2,0($t5)
+		lw $a2,addrLen
 
 		li $v0, SYS_bind
 		syscall
 
 
 	listen:
-		la $t5,sockfd
-		lw $a0,0($t5)
+		lw $a0,sockfd
 		li $a1,NULL
 
 		li $v0,SYS_listen
@@ -72,8 +69,7 @@ __start:
 
 	requestLoop:
 		accept:
-			la $t5,sockfd
-			lw $a0,0($t5)
+			lw $a0,sockfd
 			li $a1,NULL
 			li $a2,NULL
 
@@ -99,8 +95,11 @@ __start:
 			lb 	$t1,0($a1)
 			li 	$t3,' '
 
+			addiu $s4,$s4,1
 			bne $t1, $t3, readLoop
 
+	slti $t5,$s4,6
+	beq $t5,$0,methodNotValid
 
 	move $a0,$s0
 	move $a1,$s1
@@ -109,6 +108,28 @@ __start:
 	li $v0,SYS_write
 	syscall
 
-	li $a0,20
+	close:
+		lw $a0,currfd
+		li $v0,SYS_close
+		syscall
+
+	j requestLoop
+
+	li $a0,0
 	li $v0,SYS_exit
 	syscall
+
+
+
+.globl methodNotValid
+methodNotValid:
+	
+	lw $a0,currfd
+	la $a1,malformedReq
+	lw $a2,malformedReqLen
+
+	li $v0, SYS_write
+	syscall
+
+	jr $ra
+	
