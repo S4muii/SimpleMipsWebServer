@@ -1,6 +1,6 @@
 # SimpleMipsWebServer
 
-[WIP]
+## [WIP]
 
 To install the required packages . assuming you're on Linux and a distro that uses `apt` 
 ```shell
